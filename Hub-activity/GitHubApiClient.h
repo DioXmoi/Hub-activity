@@ -3,108 +3,98 @@
 #ifndef _15_39_21_10_2024_GITHUBAPICLIENT_H_
 #define _15_39_21_10_2024_GITHUBAPICLIENT_H_
 
+
 #include <Winsock2.h> 
-#include <Ws2tcpip.h>
+#include <wininet.h>
+#include <windows.h>
 #include <stdexcept>
-#include <stdio.h>    // For standard input/output
 #include <string>
 #include <string_view>
-
-#include <iostream>
 
 
 
 class GitHubApiClient {
 
 public:
+	static std::string SendGetRequest(const std::string& endpoint) {
+		// Initialize WinInet
+		HINTERNET hInternet = InternetOpenA("Hub-activity", 
+			INTERNET_OPEN_TYPE_DIRECT, 
+			NULL,
+			NULL,
+			0);
 
-	GitHubApiClient() {
-		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-			throw std::runtime_error{ "Error: WinSock version initializaion #" + WSAGetLastError() + '.' + '\n'};
-		}
-	}
-
-	~GitHubApiClient() {
-		WSACleanup();
-	}
-
-	std::string SendGetRequest(const std::string& endpoint) {
-		SOCKET serverSocket{ socket(AF_INET, SOCK_STREAM, 0) };
-		if (serverSocket == INVALID_SOCKET) {
-			closesocket(serverSocket);
-			throw std::runtime_error{ "Error: Initialization socket # " + WSAGetLastError() + '.' + '\n' };
+		if (hInternet == NULL) {
+			throw std::runtime_error("Error: InternetOpen failed.");
 		}
 
-		addrinfo hints;
-		ZeroMemory(&hints, sizeof(hints));
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM;
-		hints.ai_protocol = IPPROTO_TCP;
+		// Open an HTTPS connection
+		HINTERNET hConnect = InternetConnectA(hInternet,
+			"api.github.com",
+			INTERNET_DEFAULT_HTTPS_PORT,
+			NULL,
+			NULL,
+			INTERNET_SERVICE_HTTP,
+			0,
+			NULL);
 
-		addrinfo* result = nullptr;
-		if (getaddrinfo("api.github.com", "80", &hints, &result) != 0) { // Port 443 for HTTPS
-			closesocket(serverSocket);
-			throw std::runtime_error{ "Error resolving hostname: " + WSAGetLastError() + '\n' };
+		if (hConnect == NULL) {
+			InternetCloseHandle(hInternet);
+			throw std::runtime_error("Error: InternetConnect failed.");
 		}
 
-		int isConnect{ connect(serverSocket, result->ai_addr, (int)result->ai_addrlen) };
-		if (isConnect == SOCKET_ERROR) {
-			closesocket(serverSocket);
-			freeaddrinfo(result);
-			throw std::runtime_error{ "Error connecting to server: " + WSAGetLastError() + '\n' };
+		// Headers HTTPS request
+		std::string headers = "Host: api.github.com\r\nAccept: application/vnd.github+json\r\nUser-Agent: Hub-activity\r\nConnection: close\r\n\r\n";
+
+		// Building https request
+		HINTERNET hRequest = HttpOpenRequestA(hConnect,
+			"GET", endpoint.c_str(), 
+			"HTTP/1.1", 
+			NULL, 
+			NULL, 
+			INTERNET_FLAG_SECURE, 
+			0);
+
+		// Send the request
+		DWORD bytesSent{ static_cast<DWORD>(headers.size()) };
+		BOOL sendResult = HttpSendRequestA(hRequest,
+			headers.c_str(), 
+			bytesSent, 
+			NULL, 
+			0);
+
+		// If the request has not gone away
+		if (!sendResult) {
+			// Close connections
+			InternetCloseHandle(hRequest);
+			InternetCloseHandle(hConnect);
+			InternetCloseHandle(hInternet);
+			throw std::runtime_error("Error: HttpSendRequest failed.");
 		}
 
-		std::string request = "GET " +
-			endpoint +
-			" HTTP/1.1\r\n" +
-			"Host: api.github.com\r\n" +
-			"Accept: application/vnd.github+json\r\n" +
-			"User-Agent: Hub-activity\r\n" +
-			"Connection: keep-alive\r\n\r\n";
-
-		int bytesSent = send(serverSocket, request.c_str(), static_cast<int>(request.size()), 0);
-		if (bytesSent == SOCKET_ERROR) {
-			closesocket(serverSocket);
-			freeaddrinfo(result);
-			throw std::runtime_error{ "Error sending request: " + WSAGetLastError() + '\n' };
-		}
-
-		DWORD timeout = 30000; // Timeout in milliseconds (30 seconds)
-		int ans{ setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) };
-		if (ans == SOCKET_ERROR) {
-			closesocket(serverSocket);
-			freeaddrinfo(result);
-			throw std::runtime_error{ "Error setting receive timeout: " + WSAGetLastError() + '\n' };
-		}
-
+		// Receive the response
+		DWORD bytesRead = 0;
 		char buffer[1024];
 		std::string response;
-		int bytesReceived;
 		while (true) {
-			bytesReceived = recv(serverSocket, buffer, sizeof buffer, 0);
-			if (bytesReceived == SOCKET_ERROR) {
-				closesocket(serverSocket);
-				freeaddrinfo(result);
-				throw std::runtime_error{ "Error sending request: " + WSAGetLastError() + '\n' };
+			BOOL readResult = InternetReadFile(hRequest,
+				buffer, 
+				sizeof(buffer), 
+				&bytesRead);
+
+			if (!readResult || bytesRead == 0) {
+				break; // End of response or error
 			}
-			else if (bytesReceived == 0) {
-				std::cout << "Connection closed by server.\n";
-				break;
-			}
-			else {
-				response.append(buffer, bytesReceived);
-			}
+			response.append(buffer, bytesRead);
 		}
 
-		closesocket(serverSocket);
-		freeaddrinfo(result);
+		// Close connections
+		InternetCloseHandle(hRequest);
+		InternetCloseHandle(hConnect);
+		InternetCloseHandle(hInternet);
 
 		return response;
 	}
-
-private:
-
-	WSADATA wsaData;
 };
 
 #endif // !_15_39_21_10_2024_GITHUBAPICLIENT_H_
