@@ -10,6 +10,9 @@
 
 
 namespace UsernameValidator {
+	static constexpr std::size_t min{ 3 };
+	static constexpr std::size_t max{ 39 };
+
 	bool isValidSize(std::string_view username) {
 		return username.size() >= min && username.size() <= max;
 	}
@@ -33,7 +36,7 @@ namespace UsernameValidator {
 		}
 
 		// Check if the first character is a letter and ends with a letter
-		if (!isValidLetter(username.front()) || !isValidLetter(username.back())) {
+		if (isValidPunct(username.front()) || isValidPunct(username.back())) {
 			return false;
 		}
 
@@ -46,8 +49,6 @@ namespace UsernameValidator {
 		return true;
 	}
 
-	constexpr std::size_t min{ 3 };
-	constexpr std::size_t max{ 39 };
 }
 
 #endif // !_14_30_25_10_2024_USERNAMEVALIDATOR_H_

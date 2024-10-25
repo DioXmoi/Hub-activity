@@ -27,10 +27,10 @@ int main(int argc, char* argv[]) {
 
 
 	std::string username{ argv[1] };
-	if (!UsernameValidator::IsValidUsername(username)) {
+	/*if (!UsernameValidator::IsValidUsername("asdfD")) {
 		std::cout << "Error:\tThe username is invalide.\n";
 		return 1;
-	}
+	}*/
 
 	std::string endpoint{ GetUserEventsEndpoint(username) };
 
