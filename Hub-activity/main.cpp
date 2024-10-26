@@ -3,9 +3,9 @@
 #include "GitHubUsernameValidator.h"
 
 
+#include <array>
 #include <iostream>
 #include <string>
-
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "wininet.lib")
