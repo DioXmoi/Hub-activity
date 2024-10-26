@@ -2,15 +2,9 @@
 #include "GitHubUserEventsParser.h"
 #include "UsernameValidator.h"
 
-<<<<<<< HEAD
 #include <array>
-=======
-
->>>>>>> my-new-branch
 #include <iostream>
 #include <string>
-
-
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "wininet.lib")
@@ -44,8 +38,6 @@ int main(int argc, char* argv[]) {
 		GitHubUserEventsParser::Print(events);
 
 	}
-<<<<<<< HEAD
-
 	std::string username{ argv[1] };
 	if (!UsernameValidator::IsValidUsername(username)) {
 		std::cout << "Error:\tThe username is invalide.\n";
@@ -59,12 +51,11 @@ int main(int argc, char* argv[]) {
 	auto events{ GitHubUserEventsParser::parse(json) };
 
 	print(events);
-=======
+	
 	catch (const std::runtime_error& exception) {
 		std::cout << exception.what();
 		return 1;
 	}
->>>>>>> my-new-branch
 
 	return 0;
 }
