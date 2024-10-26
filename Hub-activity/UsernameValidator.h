@@ -48,7 +48,6 @@ namespace UsernameValidator {
 
 		return true;
 	}
-
 }
 
 #endif // !_14_30_25_10_2024_USERNAMEVALIDATOR_H_
