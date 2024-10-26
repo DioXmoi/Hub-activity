@@ -11,47 +11,47 @@
 #include <iostream>
 
 
+namespace GitHub {
+	namespace UserEventsParser {
+		enum Type {
+			CommitCommentEventType,
+			CreateEventType,
+			DeleteEventType,
+			ForkEventType,
+			GollumEventType,
+			IssueCommentEventType,
+			IssuesEventType,
+			MemberEventType,
+			PublicEventType,
+			PullRequestEventType,
+			PullRequestReviewEventType,
+			PullRequestReviewCommentEventType,
+			PullRequestReviewThreadEventType,
+			PushEventType,
+			ReleaseEventType,
+			SponsorshipEventType,
+			WatchEventType,
+			MAX_TYPES,
+		};
 
-namespace GitHubUserEventsParser {
-	enum Type {
-		CommitCommentEventType,
-		CreateEventType,
-		DeleteEventType,
-		ForkEventType,
-		GollumEventType,
-		IssueCommentEventType,
-		IssuesEventType,
-		MemberEventType,
-		PublicEventType,
-		PullRequestEventType,
-		PullRequestReviewEventType,
-		PullRequestReviewCommentEventType,
-		PullRequestReviewThreadEventType,
-		PushEventType,
-		ReleaseEventType,
-		SponsorshipEventType,
-		WatchEventType,
-		MAX_TYPES,
-	};
+		struct Event {
+			Type type{ };
+			int count{ 0 };
+		};
 
-	struct Event {
-		Type type{ };
-		int count{ 0 };
-	};
+		static constexpr std::array eventsName{ "CommitCommentEvent", "CreateEvent", "DeleteEvent", "ForkEvent",
+				"GollumEvent", "IssueCommentEvent", "IssuesEvent", "MemberEvent",
+				"PublicEvent", "PullRequestEvent", "PullRequestReviewEvent", "PullRequestReviewCommentEvent",
+				"PullRequestReviewThreadEvent", "PushEvent", "ReleaseEvent", "SponsorshipEvent", "WatchEvent" };
 
-	static constexpr std::array eventsName{ "CommitCommentEvent", "CreateEvent", "DeleteEvent", "ForkEvent",
-			"GollumEvent", "IssueCommentEvent", "IssuesEvent", "MemberEvent",
-			"PublicEvent", "PullRequestEvent", "PullRequestReviewEvent", "PullRequestReviewCommentEvent",
-			"PullRequestReviewThreadEvent", "PushEvent", "ReleaseEvent", "SponsorshipEvent", "WatchEvent" };
+		static_assert(eventsName.size() == Type::MAX_TYPES);
 
-	static_assert(eventsName.size() == Type::MAX_TYPES);
+		std::ostream& operator<<(std::ostream& out, const Event& _event) {
+			return out << eventsName[_event.type];
+		}
 
-	std::ostream& operator<<(std::ostream& out, const Event& _event) {
-		return out << eventsName[_event.type];
-	}
-
-	static void PrintEvent(const Event& _event) {
-		switch (_event.type) {
+		static void PrintEvent(const Event& _event) {
+			switch (_event.type) {
 			case Type::CommitCommentEventType:
 				std::cout << _event.count << " - commit comments were created.\n";
 				break;
@@ -103,54 +103,54 @@ namespace GitHubUserEventsParser {
 			case Type::WatchEventType:
 				std::cout << _event.count << " - repositories were starred.\n";
 				break;
-		}
-	}
-
-	void Print(const std::array<Event, Type::MAX_TYPES>& events) {
-		bool isEmpty{ true };
-		for (const auto& _event : events) {
-			if (_event.count > 0) {
-				PrintEvent(_event);
-				isEmpty = false;
 			}
 		}
 
-		if (isEmpty) {
-			std::cout << "You don't have any events.\n";
-		}
-
-		std::cout << '\n';
-	}
-
-	static constexpr std::array<Event, Type::MAX_TYPES> GetBasicEvents() {
-		return std::array{ Event{ CommitCommentEventType }, Event{ CreateEventType }, Event{ DeleteEventType }, Event{ ForkEventType },
-			Event{ GollumEventType }, Event{ IssueCommentEventType }, Event{ IssuesEventType }, Event{ MemberEventType },
-			Event{ PublicEventType }, Event{ PullRequestEventType }, Event{ PullRequestReviewEventType }, Event{ PullRequestReviewCommentEventType },
-			Event{ PullRequestReviewThreadEventType }, Event{ PushEventType }, Event{ ReleaseEventType }, Event{ SponsorshipEventType }, Event{ WatchEventType } };
-	}
-
-	constexpr std::array<Event, Type::MAX_TYPES> Parse(std::string_view json) {
-		std::array events{ GetBasicEvents() };
-
-		std::size_t index{ 0 };
-		while (index < json.size()) {
-			index = json.find("type", index);
-			if (index == std::string::npos) {
-				break;
+		void Print(const std::array<Event, Type::MAX_TYPES>& events) {
+			bool isEmpty{ true };
+			for (const auto& _event : events) {
+				if (_event.count > 0) {
+					PrintEvent(_event);
+					isEmpty = false;
+				}
 			}
 
-			index += 7;
-			std::string sub{ json.substr(index, json.find("\"", index) - index) };
-
-			auto found{ std::ranges::find_if(events, [sub](const Event& _event) -> bool { return eventsName[_event.type] == sub; }) };
-			if (found != events.end()) {
-				found -> count += 1;
+			if (isEmpty) {
+				std::cout << "You don't have any events.\n";
 			}
+
+			std::cout << '\n';
 		}
 
-		return events;
-	}
-};
+		static constexpr std::array<Event, Type::MAX_TYPES> GetBasicEvents() {
+			return std::array{ Event{ CommitCommentEventType }, Event{ CreateEventType }, Event{ DeleteEventType }, Event{ ForkEventType },
+				Event{ GollumEventType }, Event{ IssueCommentEventType }, Event{ IssuesEventType }, Event{ MemberEventType },
+				Event{ PublicEventType }, Event{ PullRequestEventType }, Event{ PullRequestReviewEventType }, Event{ PullRequestReviewCommentEventType },
+				Event{ PullRequestReviewThreadEventType }, Event{ PushEventType }, Event{ ReleaseEventType }, Event{ SponsorshipEventType }, Event{ WatchEventType } };
+		}
 
+		constexpr std::array<Event, Type::MAX_TYPES> Parse(std::string_view json) {
+			std::array events{ GetBasicEvents() };
+
+			std::size_t index{ 0 };
+			while (index < json.size()) {
+				index = json.find("type", index);
+				if (index == std::string::npos) {
+					break;
+				}
+
+				index += 7;
+				std::string sub{ json.substr(index, json.find("\"", index) - index) };
+
+				auto found{ std::ranges::find_if(events, [sub](const Event& _event) -> bool { return eventsName[_event.type] == sub; }) };
+				if (found != events.end()) {
+					found->count += 1;
+				}
+			}
+
+			return events;
+		}
+	};
+}
 
 #endif // !_1_12_26_10_2024_GITHUBUSEREVENTSPARSER_H_
