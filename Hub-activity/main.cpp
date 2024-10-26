@@ -3,11 +3,10 @@
 #include "GitHubUsernameValidator.h"
 
 
-#include <array>
 #include <iostream>
 #include <string>
 
-#pragma comment(lib, "Ws2_32.lib")
+
 #pragma comment(lib, "wininet.lib")
 
 
@@ -28,7 +27,7 @@ int main(int argc, char* argv[]) {
 		std::string json{ GitHub::ApiClient::SendGetRequest(endpoint) };
 		std::cout << "\nReceive a response from the server.\n\n";
 
-		std::array events{ GitHub::UserEventsParser::Parse(json) };
+		auto events{ GitHub::UserEventsParser::Parse(json) };
 
 		GitHub::UserEventsParser::Print(events);
 

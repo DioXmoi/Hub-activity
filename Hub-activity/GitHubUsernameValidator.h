@@ -34,11 +34,6 @@ namespace GitHub {
 				return false;
 			}
 
-			// Check if the first character is a letter and ends with a letter
-			if (isValidPunct(username.front()) || isValidPunct(username.back())) {
-				return false;
-			}
-
 			for (const auto& ch : username) {
 				if (!isValidSymbol(ch)) {
 					return false;
