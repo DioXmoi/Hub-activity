@@ -18,8 +18,8 @@ namespace UsernameValidator {
 	}
 
 	bool isValidLetter(char ch) {
-		return (ch >= 'a' && 'z' <= ch) ||
-			(ch >= 'A' && 'Z' <= ch);
+		return (ch >= 'a' && ch <= 'z') ||
+			(ch >= 'A' && ch <= 'Z');
 	}
 
 	bool  isValidPunct(char ch) {
@@ -32,11 +32,6 @@ namespace UsernameValidator {
 
 	bool IsValidUsername(std::string_view username) {
 		if (!isValidSize(username)) {
-			return false;
-		}
-
-		// Check if the first character is a letter and ends with a letter
-		if (isValidPunct(username.front()) || isValidPunct(username.back())) {
 			return false;
 		}
 
