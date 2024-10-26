@@ -13,9 +13,11 @@
 
 
 
-class GitHubApiClient {
+namespace GitHubApiClient {
+	static std::string GetUserEventsEndpoint(const std::string& username) {
+		return "/users/" + username + "/events";
+	}
 
-public:
 	static std::string SendGetRequest(const std::string& endpoint) {
 		// Initialize WinInet
 		HINTERNET hInternet = InternetOpenA("Hub-activity", 
@@ -25,7 +27,7 @@ public:
 			0);
 
 		if (hInternet == NULL) {
-			throw std::runtime_error("Error: InternetOpen failed.");
+			throw std::runtime_error("Error:\tInternetOpen failed.\n");
 		}
 
 		// Open an HTTPS connection
@@ -40,7 +42,7 @@ public:
 
 		if (hConnect == NULL) {
 			InternetCloseHandle(hInternet);
-			throw std::runtime_error("Error: InternetConnect failed.");
+			throw std::runtime_error("Error:\tInternetConnect failed.\n");
 		}
 
 		// Headers HTTPS request
@@ -48,7 +50,8 @@ public:
 
 		// Building https request
 		HINTERNET hRequest = HttpOpenRequestA(hConnect,
-			"GET", endpoint.c_str(), 
+			"GET", 
+			endpoint.c_str(), 
 			"HTTP/1.1", 
 			NULL, 
 			NULL, 
@@ -69,7 +72,7 @@ public:
 			InternetCloseHandle(hRequest);
 			InternetCloseHandle(hConnect);
 			InternetCloseHandle(hInternet);
-			throw std::runtime_error("Error: HttpSendRequest failed.");
+			throw std::runtime_error("Error:\tHttpSendRequest failed.\n");
 		}
 
 		// Receive the response
@@ -95,6 +98,7 @@ public:
 
 		return response;
 	}
+
 };
 
 #endif // !_15_39_21_10_2024_GITHUBAPICLIENT_H_
